@@ -28,13 +28,30 @@ jobs:
             backend/package-lock.json
             frontend/package-lock.json
 
+      - name: Setup npm version
+        run: npm install -g npm@10.7.0
+
+      - name: Debug npm and node versions
+        run: |
+          echo "Node version: $(node --version)"
+          echo "NPM version: $(npm --version)"
+          echo "Current directory: $(pwd)"
+          ls -la backend/ || echo "Backend directory not found"
+          ls -la frontend/ || echo "Frontend directory not found"
+
       - name: Install backend dependencies
         working-directory: ./backend
-        run: npm ci
+        run: |
+          echo "Installing backend dependencies..."
+          ls -la package.json package-lock.json
+          npm ci
 
       - name: Install frontend dependencies
         working-directory: ./frontend
-        run: npm ci
+        run: |
+          echo "Installing frontend dependencies..."
+          ls -la package.json package-lock.json
+          npm ci
 
       - name: Lint backend
         working-directory: ./backend
