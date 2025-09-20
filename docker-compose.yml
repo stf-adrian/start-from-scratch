@@ -1,0 +1,109 @@
+version: "3.8"
+
+services:
+  # Database
+  mysql:
+    image: mysql:8.0
+    container_name: start-from-scratch-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: start_from_scratch
+      MYSQL_USER: app_user
+      MYSQL_PASSWORD: app_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./docker-from-scratch/mysql/init:/docker-entrypoint-initdb.d
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  # Backend API
+  server:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: start-from-scratch-server
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: "mysql://app_user:app_password@mysql:3306/start_from_scratch"
+      JWT_SECRET: "your-super-secret-jwt-key-change-this-in-production-make-it-very-long-and-random"
+      CORS_ORIGIN: "http://localhost"
+    ports:
+      - "3001:3001"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - app-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:3001/api/health",
+        ]
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Frontend Web App
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: start-from-scratch-web
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - server
+    networks:
+      - app-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost/health",
+        ]
+      timeout: 10s
+      retries: 3
+
+  # Nginx Reverse Proxy (optional, for production)
+  nginx:
+    image: nginx:alpine
+    container_name: start-from-scratch-nginx
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - ./docker-from-scratch/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - web
+      - server
+    networks:
+      - app-network
+    profiles:
+      - production
+
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  app-network:
+    driver: bridge

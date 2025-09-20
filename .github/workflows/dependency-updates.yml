@@ -1,0 +1,63 @@
+name: Dependency Updates
+
+on:
+  schedule:
+    # Run every Monday at 9 AM UTC
+    - cron: "0 9 * * 1"
+  workflow_dispatch:
+
+jobs:
+  update-dependencies:
+    name: Update Dependencies
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        directory: [backend, frontend]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: ${{ matrix.directory }}/package-lock.json
+
+      - name: Update dependencies
+        working-directory: ./${{ matrix.directory }}
+        run: |
+          npm update
+          npm audit fix --audit-level moderate
+
+      - name: Run tests
+        working-directory: ./${{ matrix.directory }}
+        run: |
+          npm test
+          npm run build
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore(${{ matrix.directory }}): update dependencies"
+          title: "chore(${{ matrix.directory }}): update dependencies"
+          body: |
+            ## Dependency Updates for ${{ matrix.directory }}
+
+            This PR updates dependencies in the ${{ matrix.directory }} directory.
+
+            ### Changes
+            - Updated npm dependencies to latest compatible versions
+            - Applied security fixes for moderate and higher severity vulnerabilities
+
+            ### Testing
+            - ✅ All tests pass
+            - ✅ Build completes successfully
+
+            ### Review Notes
+            Please review the changes and test thoroughly before merging.
+          branch: chore/update-${{ matrix.directory }}-dependencies
+          delete-branch: true
