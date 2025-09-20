@@ -1,4 +1,4 @@
-import { Context, Next } from 'hono';
+import { Context, Next, MiddlewareHandler } from 'hono';
 import { verifyToken } from '../lib/auth.js';
 
 export interface UserContext {
@@ -6,7 +6,7 @@ export interface UserContext {
     email: string;
 }
 
-export const authMiddleware = async (c: Context, next: Next) => {
+export const authMiddleware: MiddlewareHandler = async (c: Context, next: Next) => {
     try {
         const authHeader = c.req.header('Authorization');
 

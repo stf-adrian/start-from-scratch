@@ -19,18 +19,6 @@ const envExists = fs.existsSync(envPath);
 // Load environment variables from the .env file
 const result = dotenv.config({ path: envPath });
 
-// Debug: log environment variables and path
-console.log('Environment path:', envPath);
-console.log('Env file exists:', envExists);
-console.log('Dotenv result:', result);
-console.log('Environment check:', {
-    DATABASE_URL: process.env.DATABASE_URL ? 'loaded' : 'missing',
-    JWT_SECRET: process.env.JWT_SECRET ? 'loaded' : 'missing',
-    NODE_ENV: process.env.NODE_ENV
-});
-if (process.env.DATABASE_URL) {
-    console.log('DATABASE_URL value:', process.env.DATABASE_URL);
-}
 
 const app = new Hono();
 
@@ -65,7 +53,7 @@ app.route('/api', auth);
 
 const port = Number(process.env.PORT) || 3001;
 
-console.log(`🚀 Server is running on port ${port}`);
+console.log(`Server is running on port ${port}`);
 
 serve({
     fetch: app.fetch,
