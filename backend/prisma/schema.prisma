@@ -35,6 +35,7 @@ model LoginLog {
   city           String?
   device         String?
   browser        String?
+  success        Boolean  @default(true)
   user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("login_logs")

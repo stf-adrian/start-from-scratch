@@ -4,6 +4,8 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { LoginChart } from '@/components/LoginChart';
+import { LoginHistoryTable } from '@/components/LoginHistoryTable';
 
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -97,6 +99,16 @@ const DashboardPage = () => {
                             </div>
                         </CardContent>
                     </Card>
+                </div>
+
+                {/* Login Analytics Chart */}
+                <div className="mb-8">
+                    <LoginChart />
+                </div>
+
+                {/* Login History Table */}
+                <div className="mb-8">
+                    <LoginHistoryTable />
                 </div>
 
                 {/* Additional Information */}
